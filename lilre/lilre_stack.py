@@ -8,6 +8,8 @@ from aws_cdk import (
     aws_certificatemanager as acm,
     aws_s3,
     aws_s3_deployment,
+    aws_cloudfront,
+    aws_cloudfront_origins,
     RemovalPolicy
 )
 from constructs import Construct
@@ -40,7 +42,11 @@ class LilreStack(Stack):
         link_table.grant_read_write_data(handler)
         
         zone = aws_route53.HostedZone.from_lookup(self, 'lilre.link', domain_name='lilre.link')
-        cert = acm.DnsValidatedCertificate(self, "LilReCertificate", domain_name='lilre.link', cleanup_route53_records=True, hosted_zone=zone)
+        root_cert = acm.DnsValidatedCertificate(self, "LilReAPICertificate", domain_name='lilre.link', cleanup_route53_records=True, hosted_zone=zone)
+        site_cert = acm.Certificate(
+            self, 'LilReSiteCertificate', domain_name='site.lilre.link', 
+            validation=acm.CertificateValidation.from_dns(hosted_zone=zone)
+        )
         
         links_api = aws_apigateway.LambdaRestApi(
             self, id='linksapi',
@@ -50,7 +56,7 @@ class LilreStack(Stack):
             disable_execute_api_endpoint=True,
             domain_name=aws_apigateway.DomainNameOptions(
                 domain_name='lilre.link',
-                certificate=cert,
+                certificate=root_cert,
                 security_policy=aws_apigateway.SecurityPolicy.TLS_1_2,
                 endpoint_type=aws_apigateway.EndpointType.EDGE
             )
@@ -75,16 +81,8 @@ class LilreStack(Stack):
         site_bucket = aws_s3.Bucket(
             self, 'LilReBucket',
             bucket_name='site.lilre.link',
-            public_read_access=True,
-            block_public_access=aws_s3.BlockPublicAccess(
-                block_public_acls=False,
-                block_public_policy=False,
-                ignore_public_acls=False,
-                restrict_public_buckets=False
-            ),
-            access_control=aws_s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
-            website_index_document="index.html",
             auto_delete_objects=True,
+            block_public_access=aws_s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy=RemovalPolicy.DESTROY
         )
         
@@ -94,11 +92,26 @@ class LilreStack(Stack):
             destination_bucket=site_bucket
         )
         
+        origin_access = aws_cloudfront.OriginAccessIdentity(self, 'LileReAccessIdentity')
+        site_bucket.grant_read(origin_access)
+        
+        distribution = aws_cloudfront.Distribution(
+            self, 'LilReDistribution',
+            default_root_object='index.html',
+            default_behavior={
+                'origin': aws_cloudfront_origins.S3Origin(site_bucket, origin_access_identity=origin_access),
+                'viewer_protocol_policy': aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
+            },
+            certificate=site_cert,
+            minimum_protocol_version=aws_cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+            domain_names=['site.lilre.link']
+        )
+        
         aws_route53.ARecord(
-            self, "LilRESiteRecord",
+            self, 'LilRESiteRecord',
             record_name='site',
             zone=zone,
             target=aws_route53.RecordTarget.from_alias(
-                aws_route53_targets.BucketWebsiteTarget(site_bucket)
+                aws_route53_targets.CloudFrontTarget(distribution)
             )
         )
