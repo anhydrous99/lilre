@@ -6,6 +6,8 @@ from aws_cdk import (
     aws_route53,
     aws_route53_targets,
     aws_certificatemanager as acm,
+    aws_s3,
+    aws_s3_deployment,
     RemovalPolicy
 )
 from constructs import Construct
@@ -38,7 +40,7 @@ class LilreStack(Stack):
         link_table.grant_read_write_data(handler)
         
         zone = aws_route53.HostedZone.from_lookup(self, 'lilre.link', domain_name='lilre.link')
-        cert = acm.DnsValidatedCertificate(self, "LilReCertificate", domain_name='api.lilre.link', cleanup_route53_records=True, hosted_zone=zone)
+        cert = acm.DnsValidatedCertificate(self, "LilReCertificate", domain_name='lilre.link', cleanup_route53_records=True, hosted_zone=zone)
         
         links_api = aws_apigateway.LambdaRestApi(
             self, id='linksapi',
@@ -47,7 +49,7 @@ class LilreStack(Stack):
             proxy=False,
             disable_execute_api_endpoint=True,
             domain_name=aws_apigateway.DomainNameOptions(
-                domain_name='api.lilre.link',
+                domain_name='lilre.link',
                 certificate=cert,
                 security_policy=aws_apigateway.SecurityPolicy.TLS_1_2,
                 endpoint_type=aws_apigateway.EndpointType.EDGE
@@ -61,9 +63,42 @@ class LilreStack(Stack):
         id_resource = links_api.root.add_resource('{id}')
         id_resource.add_method('GET')
         
+        links_api.root.add_method('GET')
+        
         aws_route53.ARecord(
             self, 'LiliReAPIRecord',
-            record_name='api',
+            record_name='',
             zone=zone,
             target=aws_route53.RecordTarget.from_alias(aws_route53_targets.ApiGateway(links_api))
+        )
+        
+        site_bucket = aws_s3.Bucket(
+            self, 'LilReBucket',
+            bucket_name='site.lilre.link',
+            public_read_access=True,
+            block_public_access=aws_s3.BlockPublicAccess(
+                block_public_acls=False,
+                block_public_policy=False,
+                ignore_public_acls=False,
+                restrict_public_buckets=False
+            ),
+            access_control=aws_s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
+            website_index_document="index.html",
+            auto_delete_objects=True,
+            removal_policy=RemovalPolicy.DESTROY
+        )
+        
+        aws_s3_deployment.BucketDeployment(
+            self, 'LilReStaticWebsite',
+            sources=[aws_s3_deployment.Source.asset('./lilre-site/build')],
+            destination_bucket=site_bucket
+        )
+        
+        aws_route53.ARecord(
+            self, "LilRESiteRecord",
+            record_name='site',
+            zone=zone,
+            target=aws_route53.RecordTarget.from_alias(
+                aws_route53_targets.BucketWebsiteTarget(site_bucket)
+            )
         )

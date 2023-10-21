@@ -15,28 +15,36 @@ def lambda_handler(event, context):
     logger.info(event)
     method = event['httpMethod']
     if method == 'GET':
-        id = event['pathParameters']['id']
-        returned = links_table.get_item(Key={'id': id})
-        if 'Item' not in returned:
-            return {
-                'statusCode': 404,
-                'headers': {"Content-Type": "application/json"},
-                'body': json.dumps({'details': 'Link not found.'})
-            }
-        else:
-            if event['requestContext']['resourcePath'] == '/link/{id}':
+        if event['path'] != '/':
+            id = event['pathParameters']['id']
+            returned = links_table.get_item(Key={'id': id})
+            if 'Item' not in returned:
                 return {
-                    'statusCode': 200,
+                    'statusCode': 404,
                     'headers': {"Content-Type": "application/json"},
-                    'body': json.dumps({'link': returned['Item']['link']})
+                    'body': json.dumps({'details': 'Link not found.'})
                 }
             else:
-                return {
-                    'statusCode': 301,
-                    'headers': {
-                        'Location': returned['Item']['link']
+                if event['requestContext']['resourcePath'] == '/link/{id}':
+                    return {
+                        'statusCode': 200,
+                        'headers': {"Content-Type": "application/json"},
+                        'body': json.dumps({'link': returned['Item']['link']})
                     }
+                elif event['requestContext']['resourcePath'] == '{id}':
+                    return {
+                        'statusCode': 301,
+                        'headers': {
+                            'Location': returned['Item']['link']
+                        }
+                    }
+        else:
+            return {
+                'statusCode': 301,
+                'headers': {
+                    'Location': 'http://site.lilre.link'
                 }
+            }
     elif method == 'POST':
         link = json.loads(event['body'])['link']
         id = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
