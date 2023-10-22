@@ -59,6 +59,9 @@ class LilreStack(Stack):
                 certificate=root_cert,
                 security_policy=aws_apigateway.SecurityPolicy.TLS_1_2,
                 endpoint_type=aws_apigateway.EndpointType.EDGE
+            ),
+            default_cors_preflight_options=aws_apigateway.CorsOptions(
+                allow_origins=['https://site.lilre.link']
             )
         )
         link_resource = links_api.root.add_resource('link')

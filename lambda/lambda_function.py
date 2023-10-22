@@ -37,57 +37,54 @@ def good_to_create(url):
     return is_valid_url(url) and is_website_live(url)
 
 
+def generate_response(status_code, headers=None, body=None):
+    response = {
+        'statusCode': status_code
+    }
+    
+    if headers is None:
+        response['headers'] = {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "https://site.lilre.link"
+        }
+    else:
+        response['headers'] = headers
+        if 'Access-Control-Allow-Origin' not in response['headers']:
+            response['headers']['Access-Control-Allow-Origin'] = "https://site.lilre.link"
+    
+    if body is not None:
+        if not isinstance(body, str):
+            body = json.dumps(body)
+        response['body'] = body
+    
+    return response
+
+
 def lambda_handler(event, context):
     logger.info(event)
     method = event['httpMethod']
+    
     if method == 'GET':
-        if event['path'] != '/':
+        if event['resource'] !=  '/':
             id = event['pathParameters']['id']
             returned = links_table.get_item(Key={'id': id})
             if 'Item' not in returned:
-                return {
-                    'statusCode': 404,
-                    'headers': {"Content-Type": "application/json"},
-                    'body': json.dumps({'details': 'Link not found.'})
-                }
+                return generate_response(404, body={'details': 'Link not found.'})
             else:
-                if event['requestContext']['resourcePath'] == '/link/{id}':
-                    return {
-                        'statusCode': 200,
-                        'headers': {"Content-Type": "application/json"},
-                        'body': json.dumps({'link': returned['Item']['link']})
-                    }
-                elif event['requestContext']['resourcePath'] == '{id}':
-                    return {
-                        'statusCode': 301,
-                        'headers': {
-                            'Location': returned['Item']['link']
-                        }
-                    }
-        else:
-            return {
-                'statusCode': 301,
-                'headers': {
-                    'Location': 'http://site.lilre.link'
-                }
-            }
+                if event['resource'] == '/link/{id}':
+                    return generate_response(200, body={'link': returned['Item']['link']})
+                elif event['resource'] == '/{id}':
+                    return generate_response(301, {'Location': returned['Item']['link']})
+        elif event['resource'] == '/':
+            return generate_response(301, {'Location': 'https://site.lilre.link'})
     elif method == 'POST':
         link = json.loads(event['body'])['link']
         
         if not good_to_create(link):
-            return {
-                'statusCode': 412,
-                'headers': {"Content-Type": "application/json"},
-                'body': json.dumps({'details': 'Link isn\'t valid or isn\'t live.'})
-            }
+            return generate_response(412, body={'details': 'Link isn\'t valid or isn\'t live.'})
         
         id = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
         returned = links_table.put_item(Item={'id': id, 'link': link})
-        return {
-            'statusCode': 200,
-            'headers': {"Content-Type": "application/json"},
-            'body': json.dumps({'path': id})
-        }
-    return {
-        'statusCode': 500
-    }
+        return generate_response(200, body={'path': id})
+    
+    return generate_response(500, body={'details': 'Reached function end.'})

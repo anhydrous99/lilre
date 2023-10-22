@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { Button, Alert, Container, Navbar, Form as BForm } from 'react-bootstrap';
 import { object, string } from 'yup';
@@ -23,8 +23,23 @@ function App() {
           initialValues={{ url: '' }}
           validationSchema={urlPostSchema}
           onSubmit={( values, { setSubmitting } ) => {
-            console.log(values)
-            setSubmitting(false);
+            setTimeout(() => {
+              const url = values['url']
+
+              const requestOptions = {
+                method: 'POST',
+                Headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({'link': url})
+              };
+              fetch('https://lilre.link/link', requestOptions)
+                .then(response => response.json())
+                .then(data => console.log(data))
+                .catch(error => {
+                  console.error("There was an error!", error);
+                })
+
+              setSubmitting(false);
+            }, 400)
           }}
         >
           {({ errors, touched, isSubmitting }) => (
