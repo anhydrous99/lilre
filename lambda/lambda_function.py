@@ -2,6 +2,7 @@ import random
 import string
 import boto3
 import json
+import time
 
 import urllib3
 from urllib.parse import urlparse
@@ -84,7 +85,7 @@ def lambda_handler(event, context):
             return generate_response(412, body={'details': 'Link isn\'t valid or isn\'t live.'})
         
         id = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        returned = links_table.put_item(Item={'id': id, 'link': link})
+        returned = links_table.put_item(Item={'id': id, 'link': link, 'created_at': int(time.time())})
         return generate_response(200, body={'path': id})
     
     return generate_response(500, body={'details': 'Reached function end.'})
