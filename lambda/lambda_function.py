@@ -1,4 +1,5 @@
 import random
+import hashlib
 import string
 import boto3
 import json
@@ -38,6 +39,23 @@ def good_to_create(url):
     return is_valid_url(url) and is_website_live(url)
 
 
+def hash_dictionary(input_dict: dict):
+    # Ensure that the dictionary only contains string keys
+    for key in list(input_dict.keys()):
+        if input_dict[key] is None:
+            del input_dict[key]
+
+    # Convert the dictionary to a JSON string
+    json_str = json.dumps(input_dict, sort_keys=True)
+
+    # Create a hashlib object and calculate the hash
+    sha256 = hashlib.sha1()
+    sha256.update(json_str.encode('utf-8'))
+    hash_value = sha256.hexdigest()
+
+    return hash_value
+
+
 def generate_response(status_code, headers=None, body=None):
     response = {
         'statusCode': status_code
@@ -62,7 +80,7 @@ def generate_response(status_code, headers=None, body=None):
 
 
 def lambda_handler(event, context):
-    logger.info(event)
+    logger.info(json.dumps(event))
     method = event['httpMethod']
     
     if method == 'GET':
@@ -85,7 +103,10 @@ def lambda_handler(event, context):
             return generate_response(412, body={'details': 'Link isn\'t valid or isn\'t live.'})
         
         id = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        returned = links_table.put_item(Item={'id': id, 'link': link, 'created_at': int(time.time())})
+        identity_hash = hash_dictionary(event['requestContext']['identity'])
+        created_at = int(time.time())
+        
+        returned = links_table.put_item(Item={'id': id, 'link': link, 'identity_hash': identity_hash, 'created_at': created_at})
         return generate_response(200, body={'path': id})
     
     return generate_response(500, body={'details': 'Reached function end.'})
