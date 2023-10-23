@@ -68,6 +68,7 @@ class LilreStack(Stack):
         link_with_id = link_resource.add_resource('{id}')
         link_resource.add_method('POST')
         link_with_id.add_method('GET')
+        link_with_id.add_method('DELETE')
         
         id_resource = links_api.root.add_resource('{id}')
         id_resource.add_method('GET')

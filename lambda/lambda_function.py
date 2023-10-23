@@ -108,5 +108,8 @@ def lambda_handler(event, context):
         
         returned = links_table.put_item(Item={'id': id, 'link': link, 'identity_hash': identity_hash, 'created_at': created_at})
         return generate_response(200, body={'path': id})
+    elif method == 'DELETE':
+        id = event['pathParameters']['id']
+        links_table.delete_item(Key={'id': id})
     
     return generate_response(500, body={'details': 'Reached function end.'})
