@@ -12,12 +12,19 @@ from urllib.parse import urlparse
 from urllib3.exceptions import MaxRetryError, LocationParseError
 
 import logging
+import decimal
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 dynamodb = boto3.resource('dynamodb')
 links_table = dynamodb.Table('Links')
 
+
+class DecimalDecoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return str(o)
+        return json.JSONEncoder.default(self, o)
 
 
 def is_valid_url(url):
@@ -75,7 +82,7 @@ def generate_response(status_code, headers=None, body=None):
     
     if body is not None:
         if not isinstance(body, str):
-            body = json.dumps(body)
+            body = json.dumps(body, cls=DecimalDecoder)
         response['body'] = body
     
     return response
@@ -90,12 +97,12 @@ def lambda_handler(event, context):
             identity_hash = hash_dictionary(event['requestContext']['identity'])
             results = links_table.query(
                 IndexName='identity-index',
+                Select='ALL_ATTRIBUTES',
                 KeyConditionExpression=Key('identity_hash').eq(identity_hash)
             )
             items = []
             if 'Items' in results:
-                items.extend(results['Item'])
-            
+                items.extend(results['Items'])
             return generate_response(200, body={'links': items})
         if event['resource'] !=  '/':
             id = event['pathParameters']['id']
