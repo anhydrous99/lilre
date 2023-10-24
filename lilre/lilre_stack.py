@@ -152,7 +152,7 @@ class LilreStack(Stack):
             runtime=aws_lambda.Runtime.PYTHON_3_11,
             architecture=aws_lambda.Architecture.ARM_64,
             handler='lambda_function.lambda_handler',
-            code=aws_lambda.Code.from_asset('./lambdas/api_lambda')
+            code=aws_lambda.Code.from_asset('./lambdas/anti_entropy')
         )
         link_table.grant_read_write_data(antientropy_function)
         antientropy_rule = aws_events.Rule(
