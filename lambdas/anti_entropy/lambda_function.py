@@ -16,7 +16,7 @@ def process_items(items):
     with links_table.batch_writer() as batch:
         for item in items:
             created_at = int(item['created_at'])
-            if created_at + timeout_time > current_time:
+            if created_at + timeout_time < current_time:
                 batch.delete_item(Key={'id': item['id']})
 
 
