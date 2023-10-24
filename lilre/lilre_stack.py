@@ -28,6 +28,15 @@ class LilreStack(Stack):
             removal_policy=RemovalPolicy.DESTROY,
             partition_key=aws_dynamodb.Attribute(name='id', type=aws_dynamodb.AttributeType.STRING)
         )
+
+        # Create the identity global secondary index
+        link_table.add_global_secondary_index(
+            read_capacity=1,
+            write_capacity=1,
+            index_name='identity-index',
+            projection_type=aws_dynamodb.ProjectionType.ALL,
+            partition_key=aws_dynamodb.Attribute(name='identity_hash', type=aws_dynamodb.AttributeType.STRING)
+        )
         
         # Create lambda that will call the dynamodb table
         handler = aws_lambda.Function(
@@ -74,7 +83,10 @@ class LilreStack(Stack):
         id_resource.add_method('GET')
         
         links_api.root.add_method('GET')
-        
+
+        userlinks = links_api.root.add_resource('userlinks')
+        userlinks.add_method('GET')
+
         aws_route53.ARecord(
             self, 'LiliReAPIRecord',
             record_name='',

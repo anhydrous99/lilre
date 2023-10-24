@@ -5,6 +5,8 @@ import boto3
 import json
 import time
 
+from boto3.dynamodb.conditions import Key
+
 import urllib3
 from urllib.parse import urlparse
 from urllib3.exceptions import MaxRetryError, LocationParseError
@@ -84,6 +86,17 @@ def lambda_handler(event, context):
     method = event['httpMethod']
     
     if method == 'GET':
+        if event['resource'] == '/userlinks':
+            identity_hash = hash_dictionary(event['requestContext']['identity'])
+            results = links_table.query(
+                IndexName='identity-index',
+                KeyConditionExpression=Key('identity_hash').eq(identity_hash)
+            )
+            items = []
+            if 'Items' in results:
+                items.extend(results['Item'])
+            
+            return generate_response(200, body={'links': items})
         if event['resource'] !=  '/':
             id = event['pathParameters']['id']
             returned = links_table.get_item(Key={'id': id})
