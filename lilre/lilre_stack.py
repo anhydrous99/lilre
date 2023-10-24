@@ -57,6 +57,7 @@ class LilreStack(Stack):
             validation=acm.CertificateValidation.from_dns(hosted_zone=zone)
         )
         
+        # Create the api gateway object
         links_api = aws_apigateway.LambdaRestApi(
             self, id='linksapi',
             rest_api_name='LinksAPI',
@@ -73,27 +74,33 @@ class LilreStack(Stack):
                 allow_origins=['https://site.lilre.link']
             )
         )
+        # Create the /link and link/id routes
         link_resource = links_api.root.add_resource('link')
         link_with_id = link_resource.add_resource('{id}')
         link_resource.add_method('POST')
         link_with_id.add_method('GET')
         link_with_id.add_method('DELETE')
         
+        # Create the /id route
         id_resource = links_api.root.add_resource('{id}')
         id_resource.add_method('GET')
         
+        # Reroute user to the main page
         links_api.root.add_method('GET')
 
+        # Get all of the user's links
         userlinks = links_api.root.add_resource('userlinks')
         userlinks.add_method('GET')
 
+        # Give the API it's record on the Domain
         aws_route53.ARecord(
             self, 'LiliReAPIRecord',
             record_name='',
             zone=zone,
             target=aws_route53.RecordTarget.from_alias(aws_route53_targets.ApiGateway(links_api))
         )
-        
+
+        # Create the bucket where the page resides
         site_bucket = aws_s3.Bucket(
             self, 'LilReBucket',
             bucket_name='site.lilre.link',
@@ -101,16 +108,19 @@ class LilreStack(Stack):
             block_public_access=aws_s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy=RemovalPolicy.DESTROY
         )
-        
+
+        # Create the bucket deployment object (to deploy the react app)
         aws_s3_deployment.BucketDeployment(
             self, 'LilReStaticWebsite',
             sources=[aws_s3_deployment.Source.asset('./lilre-site/build')],
             destination_bucket=site_bucket
         )
         
+        # Give create the CloudFront identity and give it access to the bucket
         origin_access = aws_cloudfront.OriginAccessIdentity(self, 'LileReAccessIdentity')
         site_bucket.grant_read(origin_access)
-        
+
+        # Create the CloudFront Distrubution
         distribution = aws_cloudfront.Distribution(
             self, 'LilReDistribution',
             default_root_object='index.html',
@@ -122,7 +132,8 @@ class LilreStack(Stack):
             minimum_protocol_version=aws_cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
             domain_names=['site.lilre.link']
         )
-        
+
+        # Give the CloudFront Distribution it's record
         aws_route53.ARecord(
             self, 'LilRESiteRecord',
             record_name='site',
