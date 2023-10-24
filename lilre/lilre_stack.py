@@ -10,6 +10,9 @@ from aws_cdk import (
     aws_s3_deployment,
     aws_cloudfront,
     aws_cloudfront_origins,
+    aws_events,
+    aws_events_targets,
+    Duration,
     RemovalPolicy
 )
 from constructs import Construct
@@ -141,4 +144,21 @@ class LilreStack(Stack):
             target=aws_route53.RecordTarget.from_alias(
                 aws_route53_targets.CloudFrontTarget(distribution)
             )
+        )
+
+        # Setup Anti-Entropy
+        antientropy_function = aws_lambda.Function(
+            self, "lilre_anti_entropy_function",
+            runtime=aws_lambda.Runtime.PYTHON_3_11,
+            architecture=aws_lambda.Architecture.ARM_64,
+            handler='lambda_function.lambda_handler',
+            code=aws_lambda.Code.from_asset('./lambdas/api_lambda')
+        )
+        link_table.grant_read_write_data(antientropy_function)
+        antientropy_rule = aws_events.Rule(
+            self, 'lilre_antientropy_rule',
+            schedule=aws_events.Schedule.rate(Duration.days(1))
+        )
+        antientropy_rule.add_target(
+            aws_events_targets.LambdaFunction(antientropy_function)
         )
