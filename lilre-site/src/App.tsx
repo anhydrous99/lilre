@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Formik, Form, Field } from 'formik';
 import { Button, Alert, Container, Navbar, Form as BForm, Modal, InputGroup, FormControl, Tooltip, Overlay} from 'react-bootstrap';
 import { object, string } from 'yup';
 import './App.css';
@@ -21,7 +21,7 @@ function App() {
   <div>
     <Navbar expand="lg" className="bg-body-tertiary" bg="dark" data-bs-theme="dark">
       <Container>
-        <Navbar.Brand>LilRe - Url Shortener</Navbar.Brand>
+        <Navbar.Brand>LilRe - Link Shortener</Navbar.Brand>
       </Container>
     </Navbar>
 
