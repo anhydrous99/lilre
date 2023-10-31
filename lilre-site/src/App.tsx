@@ -3,6 +3,7 @@ import { Formik, Form, Field } from 'formik';
 import { Button, Alert, Container, Navbar, Form as BForm, Modal, InputGroup, FormControl, Tooltip, Overlay} from 'react-bootstrap';
 import { object, string } from 'yup';
 import './App.css';
+import {LinkTable} from "./components/LinkTable";
 
 const urlPostSchema = object({
   url: string().required().max(25000).min(6).url().ensure()
@@ -100,6 +101,10 @@ function App() {
             </Form>
           )}
         </Formik>
+      </div>
+
+      <div className="col-md-10 border p-3 m-5">
+        <LinkTable/>
       </div>
     </Container>
   </div>
