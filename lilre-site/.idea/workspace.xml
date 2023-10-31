@@ -5,9 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="30f553e0-1825-46b9-ad46-9bf60fde49d2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/components/LinkTable.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lambdas/api_lambda/lambda_function.py" beforeDir="false" afterPath="$PROJECT_DIR$/../lambdas/api_lambda/lambda_function.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/favicon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/logo192.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/logo512.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/LinkTable.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/LinkTable.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lilre/lilre_stack.py" beforeDir="false" afterPath="$PROJECT_DIR$/../lilre/lilre_stack.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,6 +81,7 @@
       <updated>1698358491773</updated>
       <workItem from="1698358492862" duration="3387000" />
       <workItem from="1698716630314" duration="1196000" />
+      <workItem from="1698720553142" duration="5392000" />
     </task>
     <servers />
   </component>

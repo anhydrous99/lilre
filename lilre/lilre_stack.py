@@ -75,6 +75,7 @@ class LilreStack(Stack):
             ),
             default_cors_preflight_options=aws_apigateway.CorsOptions(
                 allow_origins=['https://site.lilre.link']
+                #allow_origins=['*']
             )
         )
         # Create the /link and link/id routes

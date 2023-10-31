@@ -18,6 +18,9 @@ logger.setLevel(logging.INFO)
 dynamodb = boto3.resource('dynamodb')
 links_table = dynamodb.Table('Links')
 
+allow_origin = 'https://site.lilre.link'
+#allow_origin = '*'
+
 # ----- Utility Functions and Classes -----
 
 class DecimalDecoder(json.JSONEncoder):
@@ -73,12 +76,12 @@ def generate_response(status_code, headers=None, body=None):
     if headers is None:
         response['headers'] = {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "https://site.lilre.link"
+            "Access-Control-Allow-Origin": allow_origin
         }
     else:
         response['headers'] = headers
         if 'Access-Control-Allow-Origin' not in response['headers']:
-            response['headers']['Access-Control-Allow-Origin'] = "https://site.lilre.link"
+            response['headers']['Access-Control-Allow-Origin'] = allow_origin
     
     if body is not None:
         if not isinstance(body, str):
@@ -136,7 +139,8 @@ def create_link(event):
 
 def delete_link(event):
     id = event['pathParameters']['id']
-    links_table.delete_item(Key={'id': id})
+    response = links_table.delete_item(Key={'id': id})
+    logger.info(response)
 
     return generate_response(200, body={'details': 'Done.'})
 
@@ -150,7 +154,7 @@ endpoints = {
     ('/link/{id}', 'GET'): lambda event: get_link(event, False),
     ('/{id}', 'GET'): lambda event: get_link(event, True),
     ('/link', 'POST'): create_link,
-    ('/link', 'DELETE'): delete_link
+    ('/link/{id}', 'DELETE'): delete_link
 }
 
 

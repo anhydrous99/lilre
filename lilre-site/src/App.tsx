@@ -77,7 +77,10 @@ function App() {
                 .then(response => response.json())
                 .then(data => {
                   const path = data["path"];
-                  setShortenedUrl('https://lilre.link/' + path)
+                  if (path == undefined)
+                    setShortenedUrl('Unable to create link.')
+                  else
+                    setShortenedUrl('https://lilre.link/' + path)
                   openModal();
                 })
                 .catch(error => {
