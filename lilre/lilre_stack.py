@@ -158,7 +158,7 @@ class LilreStack(Stack):
         link_table.grant_read_write_data(antientropy_function)
         antientropy_rule = aws_events.Rule(
             self, 'lilre_antientropy_rule',
-            schedule=aws_events.Schedule.rate(Duration.days(1))
+            schedule=aws_events.Schedule.rate(Duration.days(90))
         )
         antientropy_rule.add_target(
             aws_events_targets.LambdaFunction(antientropy_function)
