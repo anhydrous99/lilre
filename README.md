@@ -1,5 +1,7 @@
 
-# Welcome to your CDK Python project!
+# LilRe - Link Shortener
+
+A CDK-React Project for a Link shorting site.
 
 ## Getting setup 
 
