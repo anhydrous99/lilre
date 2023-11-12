@@ -3,7 +3,11 @@
 
 A CDK-React Project for a Link shorting site.
 
-![CDK Diagram](https://github.com/anhydrous99/lilre/blob/main/diagram.png)
+![CDK Diagram](https://github.com/anhydrous99/lilre/blob/main/images/diagram.png)
+
+## Site
+
+![Site Image](https://github.com/anhydrous99/lilre/blob/main/images/lilre.png)
 
 ## Getting setup 
 
