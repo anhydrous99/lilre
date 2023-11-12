@@ -3,6 +3,8 @@
 
 A CDK-React Project for a Link shorting site.
 
+![CDK Diagram](https://github.com/anhydrous99/lilre/blob/main/diagram.png)
+
 ## Getting setup 
 
 1. Ensure you have python, npm, and CDK installed.
