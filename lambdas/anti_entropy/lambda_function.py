@@ -8,7 +8,7 @@ logger.setLevel(logging.INFO)
 dynamodb = boto3.resource('dynamodb')
 links_table = dynamodb.Table('Links')
 
-timeout_time = 604800  # 7 Days in Seconds
+timeout_time = 2592000  # 30 Days in Seconds
 
 
 def process_items(items):
